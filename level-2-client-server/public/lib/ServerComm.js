@@ -8,7 +8,7 @@ $.ajaxSetup({
 	type:"POST",
 	dataType:"json",
 	beforeSend:function(){
-		console.debug("sending request", this);
+		console.log("sending request", this);
 	},
 	success:function(response){
 		console.debug("response", response);
@@ -25,7 +25,7 @@ let Communicator = function(connection, isDebug){
 };
 
 Communicator.prototype.cashIn = function(chartModel, callback){
-	console.warn("sending", chartModel);
+
 	$.ajax({
 		url:this.baseUrl+"/cashIn",
 		dataType:'json',
@@ -47,7 +47,6 @@ Communicator.prototype.getStoreInfo = function(callback){
 	})
 };
 Communicator.prototype.getOffers = function(callback){
-	console.warn("getting offers");
 	$.ajax({
 		url:this.baseUrl+"/getOffers",
 		dataType:'json',
@@ -57,7 +56,6 @@ Communicator.prototype.getOffers = function(callback){
 	})
 };
 Communicator.prototype.getCatalog = function(callback){
-	console.warn("getting catalog");
 	$.ajax({
 		url:this.baseUrl+"/getCatalog",
 		dataType:'json',

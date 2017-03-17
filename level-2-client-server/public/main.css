@@ -26,7 +26,12 @@ ul {
   display: flex;
   flex-direction: row; }
 
+body {
+  background-color: lightgray; }
+
 #app {
+  background-color: white;
+  margin-top: 80px;
   padding: 20px; }
 
 .Store {
@@ -35,21 +40,31 @@ ul {
     flex-grow: 2; }
 
 .GameController {
-  border: 1px solid blue;
-  width: 80px;
-  min-height: 400px; }
+  width: 200px;
+  text-align: center;
+  padding: 10px; }
+  .GameController > button {
+    padding: 10px;
+    background-color: orange;
+    border: none;
+    font-size: 14px;
+    color: white;
+    font-weight: 600;
+    border-radius: 4px;
+    cursor: pointer; }
 
 .ShopFloor {
   position: relative;
-  border: 1px solid red;
+  border: 1px solid lightgray;
   width: 200px;
-  min-height: 400px; }
+  min-height: 500px; }
 
 .FruitStand {
   position: relative;
-  border: 1px solid orange;
+  border: 1px solid lightgray;
+  border-right: none;
   width: 200px;
-  min-height: 400px;
+  min-height: 500px;
   background-image: url("assets/images/fruitStand.jpg");
   background-repeat: no-repeat;
   background-position: center;
@@ -59,23 +74,24 @@ ul {
 
 .CashierStand {
   position: relative;
-  border: 1px solid gray;
+  border: 1px solid lightgray;
+  border-left: none;
   width: 200px;
-  min-height: 400px;
+  min-height: 500px;
   background-image: url("assets/images/cashierStand.jpg");
   background-repeat: no-repeat;
   background-position: center;
   background-size: contain; }
   .CashierStand .receiptList {
     position: absolute;
-    border: 1px solid red;
     width: 100%;
-    height: 106px;
+    height: 155px;
     bottom: 0;
     left: 0;
     background-color: white;
     overflow: auto; }
     .CashierStand .receiptList .Receipt {
+      font-size: 13px;
       margin: 2px;
       padding: 2px;
       background-color: lightyellow;
@@ -85,8 +101,17 @@ ul {
       cursor: pointer; }
       .CashierStand .receiptList .Receipt > header {
         display: none; }
+      .CashierStand .receiptList .Receipt .total {
+        margin-top: 0;
+        border: none; }
+      .CashierStand .receiptList .Receipt section.offers,
+      .CashierStand .receiptList .Receipt section.subTotal,
+      .CashierStand .receiptList .Receipt section.shoppingList {
+        display: none; }
+      .CashierStand .receiptList .Receipt:hover {
+        background-color: lightblue; }
 
-.Chart {
+.Cart {
   position: absolute;
   margin: 10px;
   width: 40px;
@@ -94,19 +119,19 @@ ul {
   background-image: url("assets/images/charts.png");
   background-repeat: no-repeat;
   background-size: contain; }
-  .Chart.disabled {
+  .Cart.disabled {
     opacity: .5; }
-  .Chart .AddItem {
+  .Cart .AddItem {
     display: none;
     position: absolute;
     bottom: -40px;
     right: 0;
     border-radius: 4px;
     border: 1px solid red; }
-    .Chart .AddItem:after {
+    .Cart .AddItem:after {
       content: "check out";
       display: inline-block; }
-  .Chart .CheckOut {
+  .Cart .CheckOut {
     display: none;
     position: absolute;
     bottom: -20px;
@@ -121,17 +146,18 @@ ul {
 .Offer {
   font-size: 13px;
   margin: 4px;
-  padding: 2px;
-  background-color: orangered;
-  color: white;
-  font-weight: 600; }
+  padding: 5px;
+  background-color: #3181d6;
+  color: #f7d82d;
+  font-weight: 600;
+  border-radius: 4px; }
 
 .FruitDisplay {
   min-height: 40px;
   width: 100%;
   padding: 5px;
   position: absolute;
-  bottom: 70px;
+  bottom: 94px;
   background-color: white; }
 
 .Fruit {
@@ -156,38 +182,86 @@ ul {
     background-size: 25px 30px; }
 
 .Receipt {
-  border: 1px solid grey;
-  width: 200px;
-  height: 450px;
-  font-size: 13px; }
-  .Receipt .shoppingList ul li {
-    display: flex; }
-    .Receipt .shoppingList ul li span {
-      display: inline-block; }
-    .Receipt .shoppingList ul li .itemName {
-      flex-grow: 2;
-      text-align: center; }
-    .Receipt .shoppingList ul li .quantity:after {
-      content: "@";
-      display: inline-block;
-      margin: 1px; }
-    .Receipt .shoppingList ul li .quantity:before {
-      content: "x";
-      font-size: smaller;
-      display: inline-block;
-      margin: 1px; }
+  width: 100%;
+  height: 100%; }
+  .Receipt .shoppingList {
+    margin-top: 22px; }
+    .Receipt .shoppingList ul li {
+      display: flex; }
+      .Receipt .shoppingList ul li span {
+        display: inline-block; }
+      .Receipt .shoppingList ul li .itemName {
+        flex-grow: 2;
+        text-align: center; }
+      .Receipt .shoppingList ul li .quantity:after {
+        content: "@";
+        display: inline-block;
+        margin: 1px; }
+      .Receipt .shoppingList ul li .quantity:before {
+        content: "x";
+        font-size: smaller;
+        display: inline-block;
+        margin: 1px; }
+  .Receipt section.total,
   .Receipt section.subTotal {
     border-top: 1px dashed lightgray;
-    margin-top: 4px;
+    margin-top: 10px;
     margin-bottom: 4px; }
+    .Receipt section.total > div,
     .Receipt section.subTotal > div {
       display: flex; }
+      .Receipt section.total > div > span,
       .Receipt section.subTotal > div > span {
         display: inline-block; }
+        .Receipt section.total > div > span.priceGrp,
         .Receipt section.subTotal > div > span.priceGrp {
           flex-grow: 2;
           text-align: right; }
+  .Receipt footer .receiptDate {
+    display: flex; }
+    .Receipt footer .receiptDate > span {
+      flex-grow: 1;
+      text-align: center; }
+  .Receipt section.total .priceGrp {
+    font-weight: 600; }
+  .Receipt section.offers ul > li {
+    display: flex; }
+    .Receipt section.offers ul > li .msg {
+      margin-left: 2px;
+      margin-right: 2px; }
   .Receipt .currencySymbol {
     margin-left: 3px; }
+
+.modalScreen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background-color: rgba(0, 0, 0, 0.2); }
+
+.receiptFrame {
+  font-size: 14px;
+  position: relative;
+  background-color: white;
+  width: 240px;
+  min-height: 450px;
+  margin: auto;
+  margin-top: 100px;
+  padding: 10px;
+  box-shadow: 3px 3px 4px gray; }
+  .receiptFrame button {
+    position: absolute;
+    background-color: firebrick;
+    font-weight: 600;
+    color: white;
+    top: -10px;
+    right: -10px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 2px solid;
+    text-align: center;
+    vertical-align: middle; }
 
 /*# sourceMappingURL=main.css.map */

@@ -60,26 +60,26 @@ let App = (function(){
 			this.gameController.getDomView()
 		);
 	};
-	App.prototype.onAddChart = function(){
-		console.log("app adding chart...");
-		let chart = new Chart(this.store);
-		this.store.addChart(chart);
+	App.prototype.onAddCart = function(){
+		console.log("app adding cart...");
+		let cart = new Cart(this.store);
+		this.store.addCart(cart);
 	};
 
 	let GameController = function(_app){
 		this.app = _app;
 		this.view = new GameControllerView();
-		this.addChartAction = new GameAction(this, this.addChart);
+		this.addCartAction = new GameAction(this, this.addCart);
 		this.setControllersView();
 	};
-	GameController.prototype.addChart = function(evt){
-		this.app.onAddChart();
+	GameController.prototype.addCart = function(evt){
+		this.app.onAddCart();
 	};
 	GameController.prototype.getDomView = function(){
 		return this.view.$domView;
 	};
 	GameController.prototype.setControllersView = function(){
-		this.addChartAction.view.$domView.appendTo(this.getDomView());
+		this.addCartAction.view.$domView.appendTo(this.getDomView());
 	};
 
 	let GameControllerView = function(){
@@ -94,7 +94,7 @@ let App = (function(){
 
 	let GameActionView = function(_controller){
 		this.controller = _controller;
-		this.$domView = $('<button/>').text("let chart in");
+		this.$domView = $('<button/>').text("let cart in");
 		this.setActions();
 	};
 	GameActionView.prototype.setActions = function(){
@@ -148,7 +148,7 @@ let App = (function(){
 					cart.items.fruits.push(item.type)
 				}break;
 				default:{
-					console.warn('chart item type %s is not yet handled', item.constructor.name);
+					console.warn('cart item type %s is not yet handled', item.constructor.name);
 				}break;
 			}
 
@@ -160,20 +160,40 @@ let App = (function(){
 
 		});
 	};
-	Store.prototype.addChart = function(_chart){
-		let $chart = _chart.getDomView();
-		this.shopFloor.getDomView().append($chart);
-		_chart.goTo(ShopFloor.locations.FRUIT_STAND)
+	Store.prototype.addCart = function(_cart){
+		let $cart = _cart.getDomView();
+		this.shopFloor.getDomView().append($cart);
+		_cart.goTo(ShopFloor.locations.FRUIT_STAND)
 	};
-	Store.prototype.removeChart = function(_chart){
-		let $chart = _chart.getDomView();
-		$chart.remove();
-		console.warn("chart removed");
+	Store.prototype.removeCart = function(_cart){
+		let $cart = _cart.getDomView();
+		$cart.remove();
+		console.warn("cart removed");
 	};
 	Store.prototype.addReceipt = function(jsonReceipt){
-		let receipt = new Receipt(jsonReceipt);
+		let receipt = new Receipt(jsonReceipt, this);
 		this.cashierStand.addReceipt(receipt);
 	};
+
+	Store.prototype.showReceiptInModalView = function(_receipt){
+		let $receiptClone = _receipt.getDomView().clone();
+		//this.store.getDomView().append($receiptClone);
+
+		let $modalScreen = $('<div class="modalScreen"/>');
+		this.getDomView().append(
+			$modalScreen
+		);
+
+		$modalScreen.append(
+			$('<div class="receiptFrame"/>').append(
+				$receiptClone,
+				$('<button/>').text('X').on('click', function(){
+					$modalScreen.remove();
+				})
+			)
+		)
+	};
+
 
 
 	let StoreView = function(_controller){
@@ -181,55 +201,55 @@ let App = (function(){
 		this.$domView = $('<div class="Store"/>');
 	};
 
-	let Chart = function(/** Store */_store){
+	let Cart = function(/** Store */_store){
 		this.store = _store;
 		this.model = {
 			uid:null,
 			items:[]
 		};
 		this.state = null;
-		this.view = new ChartView(this);
+		this.view = new CartView(this);
 	};
-	Chart.STATES = {
+	Cart.STATES = {
 		ON_THE_MOVE:0,
 		READY_TO_SHOP:1,
 		READY_TO_CHECKOUT:2
 	};
 
-	Chart.prototype.getDomView = function(){
+	Cart.prototype.getDomView = function(){
 		return this.view.$domView;
 	};
-	Chart.prototype.setState = function(_state){
+	Cart.prototype.setState = function(_state){
 		this.state = _state;
 		switch(this.state){
 
-			case Chart.STATES.READY_TO_SHOP:{
-				this.view.setState(Chart.STATES.READY_TO_SHOP);
+			case Cart.STATES.READY_TO_SHOP:{
+				this.view.setState(Cart.STATES.READY_TO_SHOP);
 			}break;
 
-			case Chart.STATES.READY_TO_CHECKOUT:{
-				this.view.setState(Chart.STATES.READY_TO_CHECKOUT);
+			case Cart.STATES.READY_TO_CHECKOUT:{
+				this.view.setState(Cart.STATES.READY_TO_CHECKOUT);
 			}break;
 
-			case Chart.STATES.ON_THE_MOVE:
+			case Cart.STATES.ON_THE_MOVE:
 			default:{
-				this.view.setState(Chart.STATES.ON_THE_MOVE);
+				this.view.setState(Cart.STATES.ON_THE_MOVE);
 				//disabled
 			}
 		}
 	};
-	Chart.prototype.goTo = function(_location){
+	Cart.prototype.goTo = function(_location){
 		let self = this;
 		switch(_location.name){
 			case "FruitStand":{
 				this.view.moveTo(_location.top, _location.left, function(){
-					self.setState(Chart.STATES.READY_TO_SHOP);
+					self.setState(Cart.STATES.READY_TO_SHOP);
 				});
 			}break;
 
 			case "CashierStand":{
 				this.view.moveTo(_location.top, _location.left, function(){
-					self.setState(Chart.STATES.READY_TO_CHECKOUT);
+					self.setState(Cart.STATES.READY_TO_CHECKOUT);
 				});
 			}break;
 
@@ -239,34 +259,34 @@ let App = (function(){
 		}
 		//this.view.moveTo(_location);
 	};
-	Chart.prototype.pay = function(){
+	Cart.prototype.pay = function(){
 		console.log("must pay to store :"+ this.store.name);
 
 		this.store.cashIn(this.model);
 	};
-	Chart.prototype.addItem = function(item){
+	Cart.prototype.addItem = function(item){
 		this.model.items.push(item);
-		console.log(item, "added to chart");
+		console.log(item, "added to cart");
 	};
-	Chart.prototype.isEmpty = function(){
+	Cart.prototype.isEmpty = function(){
 		return this.model.items.length == 0;
 	};
 
-	let ChartView = function(_controller){
+	let CartView = function(_controller){
 		this.controller = _controller;
-		this.$domView = $('<div class="Chart"/>');
+		this.$domView = $('<div class="Cart"/>');
 		this.$addItemBtn = $('<button class="AddItem"/>');
 		this.$checkoutBtn = $('<button class="CheckOut"/>').text("checkout");
 		this.assembleView();
 		this.bindDomEvents();
 	};
-	ChartView.prototype.assembleView = function(){
+	CartView.prototype.assembleView = function(){
 		this.$domView.append(
 			this.$addItemBtn,
 			this.$checkoutBtn
 		);
 	};
-	ChartView.prototype.bindDomEvents = function(){
+	CartView.prototype.bindDomEvents = function(){
 		let self = this;
 
 		this.$domView.droppable({
@@ -278,12 +298,12 @@ let App = (function(){
 		});
 
 		//this.$domView.on('mouseover', function(){
-		//	if(self.controller.state == Chart.STATES.READY_TO_SHOP){
+		//	if(self.controller.state == Cart.STATES.READY_TO_SHOP){
 		//		//self.$checkoutBtn.fadeIn();
 		//	}
 		//});
 		//this.$domView.on('mouseout', function(){
-		//	if(self.controller.state == Chart.STATES.READY_TO_SHOP){
+		//	if(self.controller.state == Cart.STATES.READY_TO_SHOP){
 		//		//self.$checkoutBtn.fadeOut();
 		//	}
 		//});
@@ -296,10 +316,10 @@ let App = (function(){
 			self.controller.goTo(ShopFloor.locations.CASHIER_STAND);
 		});
 	};
-	ChartView.prototype.moveTo = function(_top, _left, _callback){
+	CartView.prototype.moveTo = function(_top, _left, _callback){
 		console.log("move to ", _top, _left);
 
-		this.setState(Chart.STATES.ON_THE_MOVE);
+		this.setState(Cart.STATES.ON_THE_MOVE);
 		let self = this;
 		this.$domView.animate({
 			top:_top,
@@ -310,14 +330,14 @@ let App = (function(){
 			}
 		});
 	};
-	ChartView.prototype.setState = function(_chartState){
-		switch(_chartState){
-			case Chart.STATES.READY_TO_SHOP:{
+	CartView.prototype.setState = function(_cartState){
+		switch(_cartState){
+			case Cart.STATES.READY_TO_SHOP:{
 				this.$domView.removeClass('disabled');
 				this.$addItemBtn.fadeIn();
 			}break;
 
-			case Chart.STATES.READY_TO_CHECKOUT:{
+			case Cart.STATES.READY_TO_CHECKOUT:{
 				this.$domView.removeClass('disabled');
 				console.log(this.controller);
 				if(!this.controller.isEmpty()){
@@ -325,19 +345,19 @@ let App = (function(){
 				}
 				else{
 					alert("your cart is empty, thank you and good bye");
-					this.controller.store.removeChart(this.controller);
+					this.controller.store.removeCart(this.controller);
 				}
 			}break;
 
 
-			case Chart.STATES.ON_THE_MOVE:
+			case Cart.STATES.ON_THE_MOVE:
 			default:{
 				this.$domView.addClass('disabled');
 				this.$addItemBtn.fadeOut("fast");
 			}break;
 		}
 	};
-	ChartView.prototype.enableShopping = function(){
+	CartView.prototype.enableShopping = function(){
 
 	};
 
@@ -446,17 +466,22 @@ let App = (function(){
 	};
 
 	CashierStandView.prototype.refreshList = function(){
+		let self = this;
 		this.$receiptList.empty();
 		//console.info(this.controller.receipts);
 		this.controller.receipts.forEach((receipt)=>{
-			this.$receiptList.append(receipt.getDomView());
+			let $miniReceipt = receipt.getDomView();
+			$miniReceipt.on('click', function(){
+				receipt.show();
+			});
+			this.$receiptList.append($miniReceipt);
 		}, this);
 	};
 
 	CashierStandView.prototype.showLatestReceipt = function(){
 		let receipts = this.controller.receipts;
 		let lastReceipt = receipts[receipts.length - 1];
-
+		lastReceipt.show();
 	};
 
 	//Fruits
@@ -498,7 +523,8 @@ let App = (function(){
 		);
 	};
 
-	let Receipt = function(_model){
+	let Receipt = function(_model, _store){
+		this.store = _store;
 		this.model = _model;
 		this.view = new ReceiptView(this);
 	};
@@ -506,7 +532,7 @@ let App = (function(){
 		return this.view.$domView;
 	};
 	Receipt.prototype.show = function(){
-
+		this.store.showReceiptInModalView(this);
 	};
 
 	let ReceiptView = function(_controller){
@@ -515,9 +541,8 @@ let App = (function(){
 		this.assembleView();
 	};
 	ReceiptView.prototype.assembleView = function(){
-		//build from receipt model
 		let receiptModel = this.controller.model;
-		console.log(receiptModel);
+		let receiptDate = new Date(receiptModel.transactionDate);
 
 		this.$domView.append(
 			$('<header>').append(
@@ -528,7 +553,6 @@ let App = (function(){
 				(function(c_receiptModel){
 					let $list = $('<ul/>');
 					c_receiptModel.groupedItems.forEach((shopEntry)=>{
-						console.log(shopEntry);
 						$list.append(
 							$('<li/>').append(
 								$('<div class="groupPrice"/>').append(
@@ -554,6 +578,45 @@ let App = (function(){
 						$('<span class="price"/>').text(receiptModel.subTotal),
 						$('<span class="currencySymbol"/>').text(receiptModel.currencySymbol)
 					)
+				)
+			),
+			$('<section class="offers"/>').append(
+				(function(c_receiptModel){
+
+					let $list = $('<ul/>');
+
+					c_receiptModel.offers.forEach((offer)=>{
+						$list.append(
+							$('<li/>').append(
+								$('<div class="msg"/>').text("special offer"),
+								$('<div class="everyAmount"/>').text(offer.every),
+								$('<div class="msg"/>').text("for"),
+								$('<div class="payFor"/>').text(offer.payFor),
+								$('<div class="itemName"/>').text(offer.item),
+								$('<div class="offerSaving"/>').append(
+									$('<span class="groupPrice"/>').text("-"+offer.saving),
+									$('<span class="currencySymbol"/>').text(receiptModel.currencySymbol)
+								)
+							)
+						)
+					});
+
+					return $list;
+				}(receiptModel) )
+			),
+			$('<section class="total"/>').append(
+				$('<div/>').append(
+					$('<span class="totalMsg"/>').text("Total"),
+					$('<span class="priceGrp"/>').append(
+						$('<span class="price"/>').text(receiptModel.total),
+						$('<span class="currencySymbol"/>').text(receiptModel.currencySymbol)
+					)
+				)
+			),
+			$('<footer/>').append(
+				$('<div class="receiptDate"/>').append(
+					$('<span class="date"/>').text(receiptDate.toLocaleDateString()),
+					$('<span class="time"/>').text(receiptDate.toLocaleTimeString())
 				)
 			)
 		);
