@@ -1,0 +1,9 @@
+{
+	"name": "solera-test-level-0",
+	"version": "1.0.0",
+	"description": "level 0: prototype level. Just play with requirements to explore potenital issues, get insights and ideas",
+	"main": "main.js",
+	"author": "marco.falsitta@me.com",
+	"license": "ISC",
+	"dependencies": {}
+}

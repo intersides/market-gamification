@@ -1,0 +1,12 @@
+{
+	"name": "common-modules",
+	"version": "1.0.0",
+	"description": "",
+	"main": "index.js",
+	"author": "marco.falsitta@me.com",
+	"license": "ISC",
+	"dependencies": {
+		"colors": "^1.1.2",
+		"tracer": "^0.8.7"
+	}
+}

@@ -1,0 +1,141 @@
+@import "./common";
+
+#app{
+
+}
+
+.Store{
+  display: flex;
+
+  .ShopFloor{
+    flex-grow: 2;
+  }
+}
+
+.GameController{
+  border: 1px solid blue;
+  width: 80px;
+  min-height: 400px;
+}
+
+.ShopFloor{
+  position: relative;
+  border: 1px solid red;
+  width: 200px;
+  min-height: 400px;
+}
+
+.FruitStand{
+  position: relative;
+  border: 1px solid orange;
+  width: 200px;
+  min-height: 400px;
+  background-image: url("assets/images/fruitStand.jpg");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+
+  .OfferPanel{
+    //border: 1px "solid green;
+    min-height: 40px;
+  }
+}
+
+.CashierStand{
+  border: 1px solid gray;
+  width: 200px;
+  min-height: 400px;
+  background-image: url("assets/images/cashierStand.jpg");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+}
+
+.Chart{
+  position: absolute;
+  margin: 10px;
+  width: 40px;
+  height: 40px;
+  background-image: url("assets/images/charts.png");
+  background-repeat: no-repeat;
+  background-size: contain;
+
+  &.disabled{
+    opacity: .5;
+  }
+
+  .AddItem{
+    display: none;
+    position: absolute;
+    bottom:0;
+    right: 0;
+    width:20px;
+    height:20px;
+    border-radius: 50%;
+    border: 1px solid red;
+    &:after{
+      content: "+";
+      display: inline-block;
+    }
+  }
+
+  .CheckOut{
+    display: none;
+
+    position: absolute;
+    bottom:-20px;
+    left: 0;
+
+    width: 100px;
+    padding: 5px;
+    background-color: orangered;
+    color: white;
+    border: 2px solid lightsalmon;
+    border-radius: 5px;
+  }
+}
+
+.Offer{
+  font-size: 13px;
+  margin: 4px;
+  padding: 2px;
+  background-color: orangered;
+  color: white;
+  font-weight: 600;
+}
+
+.FruitDisplay{
+  //border: 1px solid lightblue;
+  min-height: 40px;
+  width: 100%;
+  padding: 5px;
+  position: absolute;
+  bottom:70px;
+  background-color: white;
+}
+
+.Fruit{
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  border:1px solid lightgray;
+  border-radius: 5px;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  margin: 3px;
+  cursor: move;
+  &.Papaya{
+    background-image: url("assets/images/papaya.jpg");
+  }
+  &.Orange{
+    background-image: url("assets/images/orange.png");
+  }
+  &.Garlic{
+    background-image: url("assets/images/garlic.jpg");
+  }
+  &.Apple{
+    background-image: url("assets/images/apple.jpeg");
+  }
+
+}

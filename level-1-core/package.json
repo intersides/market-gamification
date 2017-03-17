@@ -1,0 +1,19 @@
+{
+  "name": "solera-test-level-1",
+  "version": "1.0.0",
+  "description": "level 1: fullfilling core requirements and unit testing.",
+  "main": "main.js",
+  "author": "marco.falsitta@me.com",
+  "license": "ISC",
+  "dependencies": {
+    "extend": "^3.0.0",
+    "shortid": "^2.2.8"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^3.2.0"
+  },
+  "scripts": {
+    "test": "mocha tests/test.js"
+  }
+}
