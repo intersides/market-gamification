@@ -26,6 +26,9 @@ ul {
   display: flex;
   flex-direction: row; }
 
+#app {
+  padding: 20px; }
+
 .Store {
   display: flex; }
   .Store .ShopFloor {
@@ -55,6 +58,7 @@ ul {
     min-height: 40px; }
 
 .CashierStand {
+  position: relative;
   border: 1px solid gray;
   width: 200px;
   min-height: 400px;
@@ -62,6 +66,25 @@ ul {
   background-repeat: no-repeat;
   background-position: center;
   background-size: contain; }
+  .CashierStand .receiptList {
+    position: absolute;
+    border: 1px solid red;
+    width: 100%;
+    height: 106px;
+    bottom: 0;
+    left: 0;
+    background-color: white;
+    overflow: auto; }
+    .CashierStand .receiptList .Receipt {
+      margin: 2px;
+      padding: 2px;
+      background-color: lightyellow;
+      border: 1px solid lightblue;
+      height: auto;
+      width: auto;
+      cursor: pointer; }
+      .CashierStand .receiptList .Receipt > header {
+        display: none; }
 
 .Chart {
   position: absolute;
@@ -129,6 +152,42 @@ ul {
   .Fruit.Garlic {
     background-image: url("assets/images/garlic.jpg"); }
   .Fruit.Apple {
-    background-image: url("assets/images/apple.jpeg"); }
+    background-image: url("assets/images/apple.jpeg");
+    background-size: 25px 30px; }
+
+.Receipt {
+  border: 1px solid grey;
+  width: 200px;
+  height: 450px;
+  font-size: 13px; }
+  .Receipt .shoppingList ul li {
+    display: flex; }
+    .Receipt .shoppingList ul li span {
+      display: inline-block; }
+    .Receipt .shoppingList ul li .itemName {
+      flex-grow: 2;
+      text-align: center; }
+    .Receipt .shoppingList ul li .quantity:after {
+      content: "@";
+      display: inline-block;
+      margin: 1px; }
+    .Receipt .shoppingList ul li .quantity:before {
+      content: "x";
+      font-size: smaller;
+      display: inline-block;
+      margin: 1px; }
+  .Receipt section.subTotal {
+    border-top: 1px dashed lightgray;
+    margin-top: 4px;
+    margin-bottom: 4px; }
+    .Receipt section.subTotal > div {
+      display: flex; }
+      .Receipt section.subTotal > div > span {
+        display: inline-block; }
+        .Receipt section.subTotal > div > span.priceGrp {
+          flex-grow: 2;
+          text-align: right; }
+  .Receipt .currencySymbol {
+    margin-left: 3px; }
 
 /*# sourceMappingURL=main.css.map */

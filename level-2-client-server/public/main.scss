@@ -2,6 +2,7 @@
 
 #app{
 
+  padding:20px;
 }
 
 .Store{
@@ -42,6 +43,7 @@
 }
 
 .CashierStand{
+  position: relative;
   border: 1px solid gray;
   width: 200px;
   min-height: 400px;
@@ -49,6 +51,32 @@
   background-repeat: no-repeat;
   background-position: center;
   background-size: contain;
+
+  .receiptList{
+    position: absolute;
+    border: 1px solid red;
+    width: 100%;
+    height: 106px;
+    bottom: 0;
+    left: 0;
+    background-color: white;
+    overflow: auto;
+
+    .Receipt{
+      margin: 2px;
+      padding:2px;
+      background-color: lightyellow;
+      border:1px solid lightblue;
+      height: auto;
+      width: auto;
+      cursor: pointer;
+      > header{
+        display: none;
+      }
+    }
+  }
+
+
 }
 
 .Chart{
@@ -136,6 +164,74 @@
   }
   &.Apple{
     background-image: url("assets/images/apple.jpeg");
+    background-size: 25px 30px;
   }
+
+}
+
+.Receipt{
+
+  border: 1px solid grey;
+  width: 200px;
+  height: 450px;
+
+  font-size: 13px;
+
+
+  >header{
+
+  }
+  .shoppingList{
+    ul{
+      li{
+        span{
+          display: inline-block;
+        }
+        display: flex;
+        .itemName{
+          flex-grow: 2;
+          text-align: center;
+        }
+
+        .quantity{
+          &:after{
+            content: "@";
+            display: inline-block;
+            margin: 1px;
+          }
+          &:before{
+            content: "x";
+            font-size: smaller;
+            display: inline-block;
+            margin: 1px;
+          }
+        }
+
+
+
+      }
+    }
+  }
+
+  section.subTotal{
+    border-top: 1px dashed lightgray;
+    margin-top: 4px;
+    margin-bottom: 4px;
+    >div{
+      display: flex;
+      >span{
+        display: inline-block;
+        &.priceGrp{
+          flex-grow: 2;
+          text-align: right;
+        }
+      }
+    }
+  }
+
+  .currencySymbol{
+    margin-left: 3px;
+  }
+
 
 }

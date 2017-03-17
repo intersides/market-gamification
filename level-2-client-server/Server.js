@@ -68,6 +68,7 @@ class Server{
 				customer.addItem(new Items[itemType]());
 			});
 			let receipt = self.fruitStore.checkOut(customer);
+			receipt.print();
 			res.status(200).json({ receipt:receipt.toJson()});
 
 		});

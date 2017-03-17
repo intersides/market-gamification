@@ -34,6 +34,7 @@ customer1.addItem(new Items.Orange());
 
 
 //customer1.addItems("12 Oranges, 6 Apples, 12 Garlics, 4 Papayas");
+//customer1.addItems("6 Apples, 12 Garlics, 3 Papayas");
 
 let receipt = store.checkOut(customer1);
 receipt.print();

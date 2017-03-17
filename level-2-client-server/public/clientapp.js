@@ -136,7 +136,7 @@ let App = (function(){
 		console.info(_info);
 	};
 	Store.prototype.cashIn = function(_cartModel){
-
+		let self = this;
 		let cart = {
 			uid : _cartModel.uid,
 			items:{fruits:[]}
@@ -156,6 +156,8 @@ let App = (function(){
 
 		this.app.communicator.cashIn(cart, function(res){
 			console.debug(res);
+			self.addReceipt(res.receipt);
+
 		});
 	};
 	Store.prototype.addChart = function(_chart){
@@ -167,6 +169,10 @@ let App = (function(){
 		let $chart = _chart.getDomView();
 		$chart.remove();
 		console.warn("chart removed");
+	};
+	Store.prototype.addReceipt = function(jsonReceipt){
+		let receipt = new Receipt(jsonReceipt);
+		this.cashierStand.addReceipt(receipt);
 	};
 
 
@@ -411,15 +417,46 @@ let App = (function(){
 
 
 	let CashierStand = function(){
+		this.receipts = [];
 		this.view = new CashierStandView(this);
 
 	};
 	CashierStand.prototype.getDomView = function(){
 		return this.view.$domView;
 	};
+	CashierStand.prototype.addReceipt = function(receipt){
+		this.receipts.push(receipt);
+		this.view.refreshList();
+		//this.showReceipt(receipt);
+		this.view.showLatestReceipt();
+	};
+	CashierStand.prototype.showReceipt = function(receipt){
+		//this.view.showLatestReceipt();
+		//this.getDomView().append(receipt.getDomView());
+	};
 
 	let CashierStandView = function(_controller){
-		this.$domView = $("<div class='CashierStand'/>")
+		this.controller = _controller;
+		this.$domView = $("<div class='CashierStand'/>");
+		this.$receiptList = $('<ul class="receiptList"/>');
+		this.assembleView();
+	};
+	CashierStandView.prototype.assembleView = function(){
+		this.$domView.append(this.$receiptList);
+	};
+
+	CashierStandView.prototype.refreshList = function(){
+		this.$receiptList.empty();
+		//console.info(this.controller.receipts);
+		this.controller.receipts.forEach((receipt)=>{
+			this.$receiptList.append(receipt.getDomView());
+		}, this);
+	};
+
+	CashierStandView.prototype.showLatestReceipt = function(){
+		let receipts = this.controller.receipts;
+		let lastReceipt = receipts[receipts.length - 1];
+
 	};
 
 	//Fruits
@@ -461,7 +498,67 @@ let App = (function(){
 		);
 	};
 
+	let Receipt = function(_model){
+		this.model = _model;
+		this.view = new ReceiptView(this);
+	};
+	Receipt.prototype.getDomView = function(){
+		return this.view.$domView;
+	};
+	Receipt.prototype.show = function(){
 
+	};
+
+	let ReceiptView = function(_controller){
+		this.controller = _controller;
+		this.$domView = $('<div class="Receipt"/>');
+		this.assembleView();
+	};
+	ReceiptView.prototype.assembleView = function(){
+		//build from receipt model
+		let receiptModel = this.controller.model;
+		console.log(receiptModel);
+
+		this.$domView.append(
+			$('<header>').append(
+				$('<div class="title" />').text(receiptModel.title),
+				$('<div class="address" />').text(receiptModel.address)
+			),
+			$('<section class="shoppingList"/>').append(
+				(function(c_receiptModel){
+					let $list = $('<ul/>');
+					c_receiptModel.groupedItems.forEach((shopEntry)=>{
+						console.log(shopEntry);
+						$list.append(
+							$('<li/>').append(
+								$('<div class="groupPrice"/>').append(
+									$('<span class="quantity"/>').text(shopEntry.quantity),
+									$('<span class="unitPrice"/>').text(shopEntry.unitPrice)
+								),
+								$('<div class="itemName"/>').text(shopEntry.name),
+								$('<div class="itemPrice"/>').append(
+									$('<span class="groupPrice"/>').text(shopEntry.groupPrice),
+									$('<span class="currencySymbol"/>').text(receiptModel.currencySymbol)
+								)
+							)
+						)
+					});
+
+					return $list;
+				}(receiptModel))
+			),
+			$('<section class="subTotal"/>').append(
+				$('<div/>').append(
+					$('<span class="subTotalMsg"/>').text("Sub total"),
+					$('<span class="priceGrp"/>').append(
+						$('<span class="price"/>').text(receiptModel.subTotal),
+						$('<span class="currencySymbol"/>').text(receiptModel.currencySymbol)
+					)
+				)
+			)
+		);
+
+	};
 
 	return App;
 
