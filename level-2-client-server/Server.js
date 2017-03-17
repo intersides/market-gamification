@@ -6,6 +6,9 @@
 
 let fs = require('fs');
 let Store = require('../lib/Store');
+let Customer = require('../lib/Customer');
+let Items = require('../lib/Items');
+let ITEM = Items.ITEM;
 
 class Server{
 
@@ -57,14 +60,34 @@ class Server{
 
 		this.rest.post('/cashIn', (req, res)=>{
 
-			console.log(">>", req.body);
+			console.log(">>", req.body.chart);
+			let sentChart = req.body.chart;
+			//TODO: assign customer id from chart.
+			let customer = new Customer();
+			sentChart.items.fruits.forEach((itemType)=>{
+				customer.addItem(new Items[itemType]());
+			});
+			let receipt = self.fruitStore.checkOut(customer);
+			res.status(200).json({ receipt:receipt.toJson()});
 
-			res.status(200).json({ ex:321});
+		});
+
+		this.rest.post('/getStoreInfo', (req, res)=>{
+			let storeInfo = {};
+			if(self.fruitStore !== null){
+				storeInfo = {
+					name:self.fruitStore.name,
+					address:self.fruitStore.address,
+					currency:self.fruitStore.currency,
+					currencySymbol:self.fruitStore.currencySymbol
+				};
+			}
+			res.status(200).json({storeInfo:storeInfo});
 		});
 
 		this.rest.post('/getOffers', (req, res)=>{
 			let allOffers = [];
-			if(self.store !== null){
+			if(self.fruitStore !== null){
 				allOffers = self.fruitStore.getOffers();
 			}
 			res.status(200).json({offers:allOffers});
@@ -72,15 +95,11 @@ class Server{
 
 		this.rest.post('/getCatalog', (req, res)=>{
 			let catalog = [];
-			if(self.store !== null){
+			if(self.fruitStore !== null){
 				catalog = self.fruitStore.getCatalog();
 			}
 			res.status(200).json({catalog:catalog});
 		});
-
-		//this.rest.post('/', (req, res)=>{
-		//	res.status(200).json({ ex:"***"});
-		//});
 
 
 		//this.rest.get('/prod/:sku', (req, res)=>{

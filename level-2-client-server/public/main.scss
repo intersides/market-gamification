@@ -67,14 +67,14 @@
   .AddItem{
     display: none;
     position: absolute;
-    bottom:0;
+    bottom:-40px;
     right: 0;
-    width:20px;
-    height:20px;
-    border-radius: 50%;
+    //width:20px;
+    //height:20px;
+    border-radius: 4px;
     border: 1px solid red;
     &:after{
-      content: "+";
+      content: "check out";
       display: inline-block;
     }
   }

@@ -24,18 +24,28 @@ let Communicator = function(connection, isDebug){
 	}
 };
 
-Communicator.prototype.cashIn = function(shoppingChart, callback){
-	console.warn("sending", shoppingChart);
+Communicator.prototype.cashIn = function(chartModel, callback){
+	console.warn("sending", chartModel);
 	$.ajax({
 		url:this.baseUrl+"/cashIn",
 		dataType:'json',
-		data:shoppingChart,
+		data:{chart:chartModel},
 		success:function(response){
 			callback(response);
 		}
 	})
 };
 
+Communicator.prototype.getStoreInfo = function(callback){
+	console.warn("getting store infos");
+	$.ajax({
+		url:this.baseUrl+"/getStoreInfo",
+		dataType:'json',
+		success:function(response){
+			callback(response);
+		}
+	})
+};
 Communicator.prototype.getOffers = function(callback){
 	console.warn("getting offers");
 	$.ajax({

@@ -14,13 +14,17 @@ let App = (function(){
 
 		this.gameController = new GameController(this);
 		this.store = new Store(this);
-		this.fruitStand = new FruitStand();
-		this.shopFloor = new ShopFloor();
-		this.cashierStand = new CashierStand();
 
 		this.communicator = new Communicator(commParams, true);
 
 		let serverRequestsPromises = [
+
+			new Promise((resolve, reject)=>{
+				self.communicator.getStoreInfo(function(result){
+					resolve(result);
+				});
+			}),
+
 			new Promise((resolve, reject)=>{
 				self.communicator.getOffers(function(result){
 					resolve(result);
@@ -37,11 +41,11 @@ let App = (function(){
 
 
 		Promise.all(serverRequestsPromises).then((values)=>{
-			self.fruitStand.setOffers(values[0].offers);
-			console.log(values[1]);
-			self.fruitStand.setCatalog(values[1].catalog.fruits);
+			self.store.setInfo(values[0].storeInfo);
+			let fruitStans = self.store.getFruitStand();
+			fruitStans.setOffers(values[1].offers);
+			fruitStans.setCatalog(values[2].catalog.fruits);
 			self.setStage();
-
 		}).catch((reason)=>{
 			console.error(reason);
 		});
@@ -51,24 +55,16 @@ let App = (function(){
 		this.$domView.appendTo($('body'));
 	};
 	App.prototype.setStage = function(){
-
-		let $store = this.store.getDomView();
-			$store.append(this.gameController.getDomView());
-			$store.append(this.fruitStand.getDomView());
-			$store.append(this.shopFloor.getDomView());
-			$store.append(this.cashierStand.getDomView());
-		this.$domView.append($store);
+		this.$domView.append(
+			this.store.getDomView(),
+			this.gameController.getDomView()
+		);
 	};
 	App.prototype.onAddChart = function(){
 		console.log("app adding chart...");
 		let chart = new Chart(this.store);
-		//this.store.addChart();
-		let $chart = chart.getDomView();
-		this.shopFloor.getDomView().append($chart);
-		chart.goTo(ShopFloor.locations.FRUIT_STAND)
-
+		this.store.addChart(chart);
 	};
-
 
 	let GameController = function(_app){
 		this.app = _app;
@@ -98,12 +94,12 @@ let App = (function(){
 
 	let GameActionView = function(_controller){
 		this.controller = _controller;
-		this.$domView = $('<button/>');
+		this.$domView = $('<button/>').text("let chart in");
 		this.setActions();
 	};
 	GameActionView.prototype.setActions = function(){
 		let self = this;
-		this.$domView = $('<button/>').on('click', function(evt){
+		this.$domView.on('click', function(evt){
 			self.controller.clickAction.call(self.controller.gameController, evt);
 		});
 	};
@@ -113,16 +109,66 @@ let App = (function(){
 		this.app = _app;
 		this.name = "My Store";
 		this.model = {};
+
+		this.fruitStand = new FruitStand();
+		this.shopFloor = new ShopFloor();
+		this.cashierStand = new CashierStand();
+
 		this.view = new StoreView(this);
+		this.assembleView();
 	};
 	Store.prototype.getDomView = function(){
 		return this.view.$domView;
 	};
-	Store.prototype.cashIn = function(){
-		this.app.communicator.cashIn({shoppingList:[]}, function(){
-			console.debug(arguments);
+	Store.prototype.assembleView = function(){
+		let $domView = this.view.$domView;
+		$domView.append(
+			this.fruitStand.getDomView(),
+			this.shopFloor.getDomView(),
+			this.cashierStand.getDomView()
+		);
+
+	};
+	Store.prototype.getFruitStand = function(){
+		return this.fruitStand;
+	};
+	Store.prototype.setInfo = function(_info){
+		console.info(_info);
+	};
+	Store.prototype.cashIn = function(_cartModel){
+
+		let cart = {
+			uid : _cartModel.uid,
+			items:{fruits:[]}
+		};
+
+		_cartModel.items.forEach((item)=>{
+			switch(item.constructor.name){
+				case "Fruit":{
+					cart.items.fruits.push(item.type)
+				}break;
+				default:{
+					console.warn('chart item type %s is not yet handled', item.constructor.name);
+				}break;
+			}
+
+		});
+
+		this.app.communicator.cashIn(cart, function(res){
+			console.debug(res);
 		});
 	};
+	Store.prototype.addChart = function(_chart){
+		let $chart = _chart.getDomView();
+		this.shopFloor.getDomView().append($chart);
+		_chart.goTo(ShopFloor.locations.FRUIT_STAND)
+	};
+	Store.prototype.removeChart = function(_chart){
+		let $chart = _chart.getDomView();
+		$chart.remove();
+		console.warn("chart removed");
+	};
+
 
 	let StoreView = function(_controller){
 		this.controller = _controller;
@@ -189,11 +235,15 @@ let App = (function(){
 	};
 	Chart.prototype.pay = function(){
 		console.log("must pay to store :"+ this.store.name);
-		this.store.cashIn();
+
+		this.store.cashIn(this.model);
 	};
 	Chart.prototype.addItem = function(item){
 		this.model.items.push(item);
 		console.log(item, "added to chart");
+	};
+	Chart.prototype.isEmpty = function(){
+		return this.model.items.length == 0;
 	};
 
 	let ChartView = function(_controller){
@@ -248,7 +298,7 @@ let App = (function(){
 		this.$domView.animate({
 			top:_top,
 			left:_left,
-		}, 2500, function(){
+		}, "fast", function(){
 			if(_callback){
 				_callback();
 			}
@@ -263,7 +313,14 @@ let App = (function(){
 
 			case Chart.STATES.READY_TO_CHECKOUT:{
 				this.$domView.removeClass('disabled');
-				this.controller.pay();
+				console.log(this.controller);
+				if(!this.controller.isEmpty()){
+					this.controller.pay();
+				}
+				else{
+					alert("your cart is empty, thank you and good bye");
+					this.controller.store.removeChart(this.controller);
+				}
 			}break;
 
 
@@ -352,8 +409,10 @@ let App = (function(){
 		}, this);
 	};
 
+
 	let CashierStand = function(){
 		this.view = new CashierStandView(this);
+
 	};
 	CashierStand.prototype.getDomView = function(){
 		return this.view.$domView;
@@ -401,6 +460,7 @@ let App = (function(){
 			$('<div/>').text(`Get ${offerModel.getAmount} for ${offerModel.payFor} on ${offerModel.item}s and save !!`)
 		);
 	};
+
 
 
 	return App;

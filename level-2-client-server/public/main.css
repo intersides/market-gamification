@@ -76,14 +76,12 @@ ul {
   .Chart .AddItem {
     display: none;
     position: absolute;
-    bottom: 0;
+    bottom: -40px;
     right: 0;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
+    border-radius: 4px;
     border: 1px solid red; }
     .Chart .AddItem:after {
-      content: "+";
+      content: "check out";
       display: inline-block; }
   .Chart .CheckOut {
     display: none;

@@ -31,8 +31,6 @@ server.start(3000).then(
 		store.addOffer(orangeOffer4By2);
 		server.setStore(store);
 
-
-		console.debug(server.fruitStore);
 	},
 	(initError)=>{
 		console.error(initError);
