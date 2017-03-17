@@ -139,7 +139,8 @@ $sideSectionsWidth:200px;
     //width:20px;
     //height:20px;
     border-radius: 4px;
-    border: 1px solid red;
+    border: none;
+    cursor: pointer;
     &:after{
       content: "check out";
       display: inline-block;

@@ -127,7 +127,8 @@ body {
     bottom: -40px;
     right: 0;
     border-radius: 4px;
-    border: 1px solid red; }
+    border: none;
+    cursor: pointer; }
     .Cart .AddItem:after {
       content: "check out";
       display: inline-block; }
