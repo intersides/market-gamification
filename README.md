@@ -58,3 +58,6 @@ any external framework (except for client side jQuery used for ajax wrapper and 
     Once the receipt it is closed it can be reopened by clicking it from the list under the counter.
     
     
+![snap01](https://cloud.githubusercontent.com/assets/3665812/24071672/2ad4d45a-0bd8-11e7-853b-eb051c543669.jpeg)
+![test-gamification](https://cloud.githubusercontent.com/assets/3665812/24071673/2adca158-0bd8-11e7-9b9e-0e907fcd64d5.jpeg)
+    
