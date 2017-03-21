@@ -113,7 +113,6 @@ body {
 
 .Cart {
   position: absolute;
-  margin: 10px;
   width: 40px;
   height: 40px;
   background-image: url("assets/images/charts.png");
@@ -121,28 +120,17 @@ body {
   background-size: contain; }
   .Cart.disabled {
     opacity: .5; }
-  .Cart .AddItem {
-    display: none;
-    position: absolute;
-    bottom: -40px;
-    right: 0;
-    border-radius: 4px;
-    border: none;
-    cursor: pointer; }
-    .Cart .AddItem:after {
-      content: "check out";
-      display: inline-block; }
   .Cart .CheckOut {
     display: none;
     position: absolute;
-    bottom: -20px;
-    left: 0;
-    width: 100px;
-    padding: 5px;
-    background-color: orangered;
-    color: white;
-    border: 2px solid lightsalmon;
-    border-radius: 5px; }
+    bottom: 4px;
+    right: -70px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer; }
+    .Cart .CheckOut:after {
+      content: "check out";
+      display: inline-block; }
 
 .Offer {
   font-size: 13px;
@@ -264,5 +252,29 @@ body {
     border: 2px solid;
     text-align: center;
     vertical-align: middle; }
+
+.StandingArea {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  z-index: 99; }
+  .StandingArea.FRUIT_STAND {
+    top: 147px;
+    bottom: 154px;
+    left: 0;
+    border: 1px dashed orange;
+    width: 63px; }
+  .StandingArea.CASHIER {
+    top: 231px;
+    bottom: 154px;
+    right: -80px;
+    width: 63px;
+    height: 50px; }
+
+.StandingSpot {
+  position: relative;
+  overflow: visible;
+  flex-grow: 1;
+  margin: 5px; }
 
 /*# sourceMappingURL=main.css.map */

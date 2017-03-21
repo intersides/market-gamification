@@ -61,7 +61,6 @@ let App = (function(){
 		);
 	};
 	App.prototype.onAddCart = function(){
-		console.log("app adding cart...");
 		let cart = new Cart(this.store);
 		this.store.addCart(cart);
 	};
@@ -135,17 +134,19 @@ let App = (function(){
 	Store.prototype.setInfo = function(_info){
 		console.info(_info);
 	};
-	Store.prototype.cashIn = function(_cartModel){
+	Store.prototype.cashIn = function(/** Cart */_cart){
 		let self = this;
-		let cart = {
-			uid : _cartModel.uid,
+
+		let cartModel = _cart.model;
+		let cartForServer = {
+			uid : cartModel.uid,
 			items:{fruits:[]}
 		};
 
-		_cartModel.items.forEach((item)=>{
+		cartModel.items.forEach((item)=>{
 			switch(item.constructor.name){
 				case "Fruit":{
-					cart.items.fruits.push(item.type)
+					cartForServer.items.fruits.push(item.type)
 				}break;
 				default:{
 					console.warn('cart item type %s is not yet handled', item.constructor.name);
@@ -154,21 +155,32 @@ let App = (function(){
 
 		});
 
-		this.app.communicator.cashIn(cart, function(res){
-			console.debug(res);
+		this.app.communicator.cashIn(cartForServer, function(res){
+			_cart.getSpot().unsetCart();
+			self.removeCart(_cart);
 			self.addReceipt(res.receipt);
-
 		});
 	};
+	/**
+	 *
+	 * @param {Cart} _cart
+	 */
 	Store.prototype.addCart = function(_cart){
 		let $cart = _cart.getDomView();
-		this.shopFloor.getDomView().append($cart);
-		_cart.goTo(ShopFloor.locations.FRUIT_STAND)
+		let availableSpot = this.shopFloor.getAvailableSpot(StandingArea.TYPES.FRUIT_STAND);
+		if(availableSpot){
+			this.view.$domView.append($cart);
+			availableSpot.setCart(_cart);
+			_cart.goTo({name:"FruitStand", top:availableSpot.getDomView().offset().top, left:availableSpot.getDomView().offset().left});
+
+		}
+		else{
+			alert("fruit stand is crowded. Wait for a slot to free up!");
+		}
+
 	};
 	Store.prototype.removeCart = function(_cart){
-		let $cart = _cart.getDomView();
-		$cart.remove();
-		console.warn("cart removed");
+		this.shopFloor.removeCart(_cart);
 	};
 	Store.prototype.addReceipt = function(jsonReceipt){
 		let receipt = new Receipt(jsonReceipt, this);
@@ -201,20 +213,26 @@ let App = (function(){
 		this.$domView = $('<div class="Store"/>');
 	};
 
-	let Cart = function(/** Store */_store){
+	function Cart(/** Store */_store){
+		this.id = Cart.counter++;
 		this.store = _store;
 		this.model = {
 			uid:null,
 			items:[]
 		};
+
+		/** @type {StandingSpot} */
+		this.spot = null;
+
 		this.state = null;
 		this.view = new CartView(this);
-	};
+	}
 	Cart.STATES = {
 		ON_THE_MOVE:0,
 		READY_TO_SHOP:1,
 		READY_TO_CHECKOUT:2
 	};
+	Cart.counter = 0;
 
 	Cart.prototype.getDomView = function(){
 		return this.view.$domView;
@@ -248,6 +266,9 @@ let App = (function(){
 			}break;
 
 			case "CashierStand":{
+
+				//remove the spot where the cart is currently placed.
+
 				this.view.moveTo(_location.top, _location.left, function(){
 					self.setState(Cart.STATES.READY_TO_CHECKOUT);
 				});
@@ -262,7 +283,7 @@ let App = (function(){
 	Cart.prototype.pay = function(){
 		console.log("must pay to store :"+ this.store.name);
 
-		this.store.cashIn(this.model);
+		this.store.cashIn(this);
 	};
 	Cart.prototype.addItem = function(item){
 		this.model.items.push(item);
@@ -271,18 +292,19 @@ let App = (function(){
 	Cart.prototype.isEmpty = function(){
 		return this.model.items.length == 0;
 	};
+	Cart.prototype.getSpot = function(){
+		return this.spot;
+	};
 
 	let CartView = function(_controller){
 		this.controller = _controller;
 		this.$domView = $('<div class="Cart"/>');
-		this.$addItemBtn = $('<button class="AddItem"/>');
-		this.$checkoutBtn = $('<button class="CheckOut"/>').text("checkout");
+		this.$checkoutBtn = $('<button class="CheckOut"/>');
 		this.assembleView();
 		this.bindDomEvents();
 	};
 	CartView.prototype.assembleView = function(){
 		this.$domView.append(
-			this.$addItemBtn,
 			this.$checkoutBtn
 		);
 	};
@@ -308,17 +330,25 @@ let App = (function(){
 		//	}
 		//});
 
-		this.$addItemBtn.on('click', function(){
-			self.controller.goTo(ShopFloor.locations.CASHIER_STAND);
+		this.$checkoutBtn.on('click', function(){
+			/** @type {Store} */
+			let cashierStandArea = self.controller.store.shopFloor.standsAreas[StandingArea.TYPES.CASHIER];
+			let $cashierStandArea = cashierStandArea.getDomView();
+			let cart = self.controller;
+			let currentSpot = cart.getSpot();
+			if(currentSpot){
+				currentSpot.unsetCart();
+			}
+			else{
+				console.error("cart has no spot reference");
+			}
+
+			cart.goTo({name:"CashierStand", top:$cashierStandArea.offset().top, left:$cashierStandArea.offset().left});
 		});
 
-		this.$checkoutBtn.on('click', function(evt){
-			self.controller.goTo(ShopFloor.locations.CASHIER_STAND);
-		});
+
 	};
 	CartView.prototype.moveTo = function(_top, _left, _callback){
-		console.log("move to ", _top, _left);
-
 		this.setState(Cart.STATES.ON_THE_MOVE);
 		let self = this;
 		this.$domView.animate({
@@ -334,12 +364,11 @@ let App = (function(){
 		switch(_cartState){
 			case Cart.STATES.READY_TO_SHOP:{
 				this.$domView.removeClass('disabled');
-				this.$addItemBtn.fadeIn();
+				this.$checkoutBtn.fadeIn();
 			}break;
 
 			case Cart.STATES.READY_TO_CHECKOUT:{
 				this.$domView.removeClass('disabled');
-				console.log(this.controller);
 				if(!this.controller.isEmpty()){
 					this.controller.pay();
 				}
@@ -353,7 +382,7 @@ let App = (function(){
 			case Cart.STATES.ON_THE_MOVE:
 			default:{
 				this.$domView.addClass('disabled');
-				this.$addItemBtn.fadeOut("fast");
+				this.$checkoutBtn.fadeOut("fast");
 			}break;
 		}
 	};
@@ -361,23 +390,166 @@ let App = (function(){
 
 	};
 
-	let ShopFloor = function(){
+	/**
+	 *
+	 * @constructor
+	 */
+	function ShopFloor(){
 		this.model = {};
+
+		this.fruitStandsSlots = 4;
+		this.cashierStandsSlots = 1;
+
+		this.standsAreas = {};
+		this.standsAreas[StandingArea.TYPES.FRUIT_STAND] = new StandingArea(StandingArea.TYPES.FRUIT_STAND, this.fruitStandsSlots);
+		this.standsAreas[StandingArea.TYPES.CASHIER] = new StandingArea(StandingArea.TYPES.CASHIER, this.cashierStandsSlots);
+
 		this.view = new ShopFloorView(this);
-	};
+	}
+
 	ShopFloor.locations = {
 		FRUIT_STAND:{name:"FruitStand", top:200, left:0},
-		CASHIER_STAND:{name:"CashierStand", top:174, left:"100%"}
+		CASHIER_STAND:{name:"CashierStand", top:100, left:600}
 	};
-
-
 	ShopFloor.prototype.getDomView = function(){
 		return this.view.$domView;
 	};
+	ShopFloor.prototype.getAvailableSpot = function(_type){
+		let standArea = this.standsAreas[_type];
+		return standArea.getEmptySpot();
+	};
+	ShopFloor.prototype.removeCart = function(_cart){
+		let $cart = _cart.getDomView();
+		$cart.remove();
+		console.warn("cart removed");
+	};
 
-	let ShopFloorView = function(_controller){
+	/**
+	 *
+	 * @param {ShopFloor} _controller
+	 * @constructor
+	 */
+	let ShopFloorView = function(/** ShopFloor */ _controller){
 		this.controller = _controller;
 		this.$domView = $('<div class="ShopFloor"/>');
+		this.assembleView();
+	};
+	ShopFloorView.prototype.assembleView = function(){
+		this.$domView.append(
+			this.controller.standsAreas[StandingArea.TYPES.FRUIT_STAND].getDomView(),
+			this.controller.standsAreas[StandingArea.TYPES.CASHIER].getDomView()
+		)
+	};
+
+	/**
+	 * @param {String} _id
+	 * @param {Number} _slotsAmounts
+	 * @constructor
+	 */
+	let StandingArea = function(_id, _slotsAmounts){
+		this.id = _id;
+		this.slots = _slotsAmounts;
+	    this.standingSpots = [];
+	    this.createSlots();
+	    this.view = new StandingAreaView(this);
+	};
+	StandingArea.TYPES = {
+		FRUIT_STAND:"FRUIT_STAND",
+		CASHIER:"CASHIER",
+	};
+	StandingArea.prototype.getDomView = function(){
+	    return this.view.$domView;
+	};
+	StandingArea.prototype.createSlots = function(){
+		for(let i = 0; i < this.slots; i++){
+			this.standingSpots.push(new StandingSpot(i));
+		}
+	};
+	StandingArea.prototype.getEmptySpot = function(){
+		for(let i = 0; i < this.standingSpots.length; i++ ){
+			if(this.standingSpots[i].isFree()){
+				return this.standingSpots[i];
+			}
+		}
+		return null;
+	};
+	StandingArea.prototype.getSpotWithCart = function(/** Cart */_cart){
+		for(let i = 0; i < this.standingSpots.length; i++ ){
+
+			/**
+			 * @type StandingSpot
+			 */
+			let spot = this.standingSpots[i];
+			if(spot.hasCart(_cart)){
+				return spot;
+			}
+
+
+		}
+
+		return null;
+	};
+
+	/**
+	 *
+	 * @param {StandingArea} _controller
+	 * @constructor
+	 */
+	function StandingAreaView(_controller){
+	    this.controller = _controller;
+	    this.$domView = $("<div class='StandingArea'/>");
+	    this.assembleView();
+	}
+	StandingAreaView.prototype.assembleView = function(){
+		this.$domView.addClass(this.controller.id);
+
+		this.controller.standingSpots.forEach((/** StandingSpot */spot)=>{
+			this.$domView.append(spot.getDomView())
+		});
+	};
+
+	/**
+	 *
+	 * @constructor
+	 */
+	function StandingSpot(){
+		/** @type Cart */
+		this.cart = null;
+	    this.view = new StandingSpotView(this);
+	}
+	StandingSpot.prototype.setCart = function(/** Cart */_cart){
+		this.cart = _cart;
+		_cart.spot = this;
+	};
+	StandingSpot.prototype.unsetCart = function(){
+		this.cart = null;
+	};
+	StandingSpot.prototype.getDomView = function(){
+	    return this.view.$domView;
+	};
+	StandingSpot.prototype.isFree = function(){
+		return this.cart == null;
+	};
+
+	StandingSpot.prototype.hasCart = function(_cart){
+		if(this.cart){
+			return this.cart.id == _cart.id;
+		}
+		return null;
+	};
+
+
+	/**
+	 *
+	 * @param {StandingSpot} _controller
+	 * @constructor
+	 */
+	let StandingSpotView = function(/** StandingSpot */_controller){
+	    this.controller = _controller;
+	    this.$domView = $("<div class='StandingSpot'/>");
+	    this.assembleView();
+	};
+	StandingSpotView.prototype.assembleView = function(){
 	};
 
 	let FruitStand = function(){
@@ -436,6 +608,7 @@ let App = (function(){
 	};
 
 
+
 	let CashierStand = function(){
 		this.receipts = [];
 		this.view = new CashierStandView(this);
@@ -447,12 +620,7 @@ let App = (function(){
 	CashierStand.prototype.addReceipt = function(receipt){
 		this.receipts.push(receipt);
 		this.view.refreshList();
-		//this.showReceipt(receipt);
 		this.view.showLatestReceipt();
-	};
-	CashierStand.prototype.showReceipt = function(receipt){
-		//this.view.showLatestReceipt();
-		//this.getDomView().append(receipt.getDomView());
 	};
 
 	let CashierStandView = function(_controller){
