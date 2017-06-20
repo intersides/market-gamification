@@ -1,4 +1,4 @@
-# solera-test
+# market - gamification POC
 ###description:
 I approached this simple project in 3 stage development.
 
